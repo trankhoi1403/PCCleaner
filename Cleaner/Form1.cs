@@ -187,6 +187,8 @@ namespace Cleaner
         private void Timer1_Tick(object sender, EventArgs e)
         {
             string now = DateTime.Now.ToString(ItemInfo.DateTimeFormat);
+            int nowSecond = DateTime.Now.Second;
+            int duration = 60 / dgv.Rows.Count; // vd: 60 / (10 + 1) = 5  khoảng thời gian giữa 1 lần load
 
             // duyệt qua các dòng, kiểm tra đúng thời điểm cần thiết thì cho timer trong các fileScreen chạy
             foreach (DataGridViewRow row in dgv.Rows)
@@ -222,11 +224,13 @@ namespace Cleaner
                     fileScreen.UpdateTimeLeft();
 
                     /* reload lại các fileScreen 
-                     * không làm tất cả cùng 1 thời điểm, mà sẽ chia nhỏ ra thành 60 lần
-                     * cứ row.Index mà chia hết cho 60 thì sẽ load row và fileScreen tương ứng
+                     * PHÂN BỔ ĐỀU CÁC MỐC THỜI GIAN LOAD
+                     * vd: có 10 row thì cứ cách 6s sẽ có 1 row và fileScreen tương ứng được load
                      */
-                    if (row.Index % 60 == DateTime.Now.Second)   
+                    // tính toán khoảng thời gian
+                    if (row.Index % 60 * duration == nowSecond)   // nếu giây hiện tại = 1 * 5;
                     {
+                        System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} Reload FileScreen: {itemInfo.Project}");
                         // reload lại filescreen
                         Dgv_CellValueChanged(dgv, new DataGridViewCellEventArgs(0, row.Index));
                     }
