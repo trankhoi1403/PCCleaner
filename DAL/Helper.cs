@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DAL
@@ -20,29 +21,36 @@ namespace DAL
         /// <returns></returns>
         public static bool TimeSpanTryParseCustom(object obj, out TimeSpan timeSpan)
         {
-            var str = obj.ToString();
-            var format = str.Last();
-            if (double.TryParse(str.Substring(0, str.Length - 1), out double number) == false)
+            timeSpan = TimeSpan.Zero;   // buộc phải assign giá trị cho timeSpan vì từ khóa out
+            try
             {
-                timeSpan = TimeSpan.Zero;   // buộc phải assign giá trị cho timeSpan vì từ khóa out
+                var str = obj.ToString();
+                var format = str.Last();
+                if (double.TryParse(str.Substring(0, str.Length - 1), out double number) == false)
+                {
+                    return false;
+                }
+                switch (format)
+                {
+                    case 'd':
+                        timeSpan = TimeSpan.FromDays(number);
+                        break;
+                    case 'h':
+                        timeSpan = TimeSpan.FromHours(number);
+                        break;
+                    case 'm':
+                        timeSpan = TimeSpan.FromMinutes(number);
+                        break;
+                    default:
+                        timeSpan = TimeSpan.Zero;
+                        break;
+                }
+                return timeSpan.Equals(TimeSpan.Zero) ? false : true;
+            }
+            catch (Exception ex)
+            {
                 return false;
             }
-            switch (format)
-            {
-                case 'd':
-                    timeSpan = TimeSpan.FromDays(number);
-                    break;
-                case 'h':
-                    timeSpan = TimeSpan.FromHours(number);
-                    break;
-                case 'm':
-                    timeSpan = TimeSpan.FromMinutes(number);
-                    break;
-                default:
-                    timeSpan = TimeSpan.Zero;
-                    break;
-            }
-            return timeSpan.Equals(TimeSpan.Zero) ? false : true;
         }
     }
 }

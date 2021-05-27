@@ -33,7 +33,7 @@ namespace Cleaner
             folderBrowserDialog1.ShowNewFolderButton = false;
 
             // config timer 
-            timer1.Interval = 60000;    // cách 1 phút quét 1 lần
+            timer1.Interval = 1000;    // cách 1 phút quét 1 lần
             
             //config cột
             dgv.AllowUserToAddRows = false;
@@ -162,7 +162,7 @@ namespace Cleaner
             var result = folderBrowserDialog1.ShowDialog(this);
             if (result == DialogResult.OK)
             {
-                var cell = dgv.Rows[e.RowIndex].Cells[e.ColumnIndex];
+                var cell = dgv.Rows[e.RowIndex].Cells["Directory"];
                 var value = cell.Value;
                 try
                 {
@@ -186,36 +186,51 @@ namespace Cleaner
 
         private void Timer1_Tick(object sender, EventArgs e)
         {
-            var now = DateTime.Now;
+            string now = DateTime.Now.ToString(ItemInfo.DateTimeFormat);
 
             // duyệt qua các dòng, kiểm tra đúng thời điểm cần thiết thì cho timer trong các fileScreen chạy
-            foreach (DataGridViewRow item in dgv.Rows)
+            foreach (DataGridViewRow row in dgv.Rows)
             {
-                var itemInfo = castToItemInfo(item);
+                ItemInfo itemInfo = dgvRowToItemInfo(row);
                 if (itemInfo == null || itemInfo.Status != "Running")
                     continue;
 
-                if (Helper.DateTimeTryParseExact(itemInfo.StartTime, out DateTime itemInfoStartTime) == false)
+                if (Helper.DateTimeTryParseExact(itemInfo.NextTime, out DateTime itemInfoNextTime) == false)
                     continue;
 
-                //var duration = itemInfoStartTime > now ? itemInfoStartTime - now : now - itemInfoStartTime;
-                //if ((int)duration.TotalMinutes % itemInfo.RunTime == 0)
-                //{
-                //    var fileScreen = getFileScreenById(itemInfo.Id);
-                //    if (fileScreen != null)
-                //    {
-                //        if (fileScreen.timer1.Enabled == false) // đảm bảo khi timer của fileScreen đang còn chạy thì KHÔNG start lại lần nữa
-                //        {
-                //            System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} FileScreen.InvokeTimerStart: {itemInfo.Project}");
-                //            fileScreen.timer1.Start();
-                //            /*
-                //             * Cần phải gọi Timer1_Tick chứ không đợi nhảy vô TickEvent vì khi start (đối với fileScreen) thì hàm xử lý của TickEvent CHƯA được gọi liền mà 
-                //             * sẽ ở lần Interval tiếp theo
-                //             */
-                //            fileScreen.Timer1_Tick(null, null);
-                //        }
-                //    }
-                //}
+                
+                FileScreen fileScreen = getFileScreenByItemInfoId(itemInfo.Id);
+                if (fileScreen != null)
+                {
+                    // tính toán thời điểm cần để start Timer
+                    if (now.Equals(itemInfoNextTime.ToString(ItemInfo.DateTimeFormat)))   // đúng thời điểm NextTime thì sẽ start
+                    {
+                        if (fileScreen.timer1.Enabled == false) // chỉ khi đang không chạy thì mới xử lý tiếp
+                        {
+                            System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} FileScreen.InvokeTimerStart: {itemInfo.Project}");
+                            fileScreen.timer1.Start();
+                            /*
+                             * Cần phải gọi Timer1_Tick chứ không đợi nhảy vô TickEvent vì khi start (đối với fileScreen) thì hàm xử lý của TickEvent CHƯA được gọi liền mà 
+                             * sẽ ở lần Interval tiếp theo
+                             */
+                            fileScreen.Timer1_Tick(fileScreen.timer1, EventArgs.Empty);
+                            FileScreen_Timer1_Tick(fileScreen.timer1, EventArgs.Empty);
+                        }
+                    }
+                    
+                    // cập nhật thời gian còn lại đến lúc bị xóa
+                    fileScreen.UpdateTimeLeft();
+
+                    /* reload lại các fileScreen 
+                     * không làm tất cả cùng 1 thời điểm, mà sẽ chia nhỏ ra thành 60 lần
+                     * cứ row.Index mà chia hết cho 60 thì sẽ load row và fileScreen tương ứng
+                     */
+                    if (row.Index % 60 == DateTime.Now.Second)   
+                    {
+                        // reload lại filescreen
+                        Dgv_CellValueChanged(dgv, new DataGridViewCellEventArgs(0, row.Index));
+                    }
+                }
             }
         }
 
@@ -227,33 +242,39 @@ namespace Cleaner
                 // tránh gọi event đệ quy vô tận do cột NextTime này được cập nhật trong chính event này
                 if (e.ColumnIndex == row.Cells.IndexOf(row.Cells["NextTime"]))
                     return;
-
+                
                 // nếu cập nhật cột StartTime hoặc RunTime thì tính toán lại cột NextTime
                 if (e.ColumnIndex == row.Cells.IndexOf(row.Cells["StartTime"]) || e.ColumnIndex == row.Cells.IndexOf(row.Cells["RunTime"]))
                 {
-                    if (Helper.DateTimeTryParseExact(row.Cells["StartTime"].Value, out DateTime startTime) == false
-                        || Helper.TimeSpanTryParseCustom(row.Cells["RunTime"].Value, out TimeSpan runTime) == false)
+                    try
                     {
-                        return;
+                        if (CalculateNextTime(row.Cells["StartTime"].Value.ToString(), row.Cells["RunTime"].Value.ToString(), out DateTime nextTime))
+                        {
+                            row.Cells["NextTime"].Value = nextTime.ToString(ItemInfo.DateTimeFormat);
+                        }
+                        else
+                        {
+                            row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
+                        }
                     }
-                    DateTime nextTime;
-                    if (startTime > DateTime.Now)
+                    catch (FormatException ex)
                     {
-                        nextTime = startTime;
+                        MessageBox.Show(ex.Message, "System Warning Alert", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
                     }
-                    else
+                    catch (ArgumentOutOfRangeException ex)
                     {
-                        var duration = (DateTime.Now - startTime).TotalMinutes; // khoảng thời gian chênh lệch
-                        var total = (int)(duration / runTime.TotalMinutes); // số lần chênh lệch so với runTime
-                        nextTime = startTime + TimeSpan.FromMinutes((total + 1) * runTime.TotalMinutes);
+                        MessageBox.Show(ex.Message, "System Warning Alert", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
                     }
-                    row.Cells["NextTime"].Value = nextTime.ToString(ItemInfo.DateTimeFormat);
                 }
 
-                var itemInfo = castToItemInfo(row);
-                var fileScreen = getFileScreenById(itemInfo?.Id);
+                var itemInfo = dgvRowToItemInfo(row);
+                var fileScreen = getFileScreenByItemInfoId(itemInfo?.Id);
                 if (fileScreen == null)
                     return;
+
+                fileScreen.Set(itemInfo);
 
                 // nếu người dùng cập nhật đúng cột status và status = Stoped thì mới dừng
                 if (e.ColumnIndex == row.Cells.IndexOf(row.Cells["Status"])
@@ -261,8 +282,6 @@ namespace Cleaner
                 {
                     fileScreen.timer1.Stop();
                 }
-
-                fileScreen.Set(itemInfo);
             }
             catch (Exception ex)
             {
@@ -339,8 +358,8 @@ namespace Cleaner
 
                 // đổi màu fileScreen tương ứng khi người dùng click lên grid
                 var row = dgv.Rows[e.RowIndex];
-                var itemInfo = castToItemInfo(row);
-                var fileScreen = getFileScreenById(itemInfo?.Id);
+                var itemInfo = dgvRowToItemInfo(row);
+                var fileScreen = getFileScreenByItemInfoId(itemInfo?.Id);
                 if (fileScreen != null)
                 {
                     fileScreen.ChangeTitleBackColor(Color.LightSkyBlue);
@@ -371,6 +390,27 @@ namespace Cleaner
                 // load dữ liệu
                 listItemInfo = DbHelper.Read<List<ItemInfo>>();
                 listItemInfo = listItemInfo ?? new List<ItemInfo>();
+
+                // tính toán lại thời gian nextTime khi load từ file
+                foreach (var item in listItemInfo)
+                {
+                    try
+                    {
+                        if (CalculateNextTime(item.StartTime, item.RunTime, out DateTime nextTime))
+                        {
+                            item.NextTime = nextTime.ToString(ItemInfo.DateTimeFormat);
+                        }
+                        else
+                        {
+                            item.RunTime = ItemInfo.DefaultRunTime;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        item.RunTime = ItemInfo.DefaultRunTime;
+                    }
+                }
+
                 src = new BindingSource();
                 src.DataSource = listItemInfo;
                 dgv.DataSource = src;
@@ -389,18 +429,89 @@ namespace Cleaner
         }
 
         #region function
+
+        // tính toán thời điểm NextTime
+        private bool CalculateNextTime(string _startTime, string _runTime, out DateTime _nextTime)
+        {
+            if (Helper.DateTimeTryParseExact(_startTime, out DateTime startTime) == false
+                       || Helper.TimeSpanTryParseCustom(_runTime, out TimeSpan runTime) == false)
+            {
+                throw new FormatException($@"The correct structure should be '\d+[d,h,m]'{Environment.NewLine}Example: 24d, 7h, 4233m,...");
+            }
+            if (runTime > ItemInfo.MaximumRunTime)
+            {
+                throw new ArgumentOutOfRangeException("_runTime", $"Maximum RunTime circle is '24d'. Let's try again!");
+            }
+
+            try
+            {
+                if (startTime > DateTime.Now)
+                {
+                    _nextTime = startTime;
+                }
+                else
+                {
+                    var duration = (DateTime.Now - startTime).TotalMinutes; // khoảng thời gian chênh lệch
+                    var total = (int)(duration / runTime.TotalMinutes); // số lần chênh lệch so với runTime
+                    _nextTime = startTime + TimeSpan.FromMinutes((total + 1) * runTime.TotalMinutes);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _nextTime = DateTime.MinValue;
+                return false;
+            }
+        }
+
         private void addFileScreen(ItemInfo itemInfo)
         {
             FileScreen fileScreen = new FileScreen();
             fileScreen = new FileScreen(itemInfo);
+            // thực hiện công việc update lại cột NextTime của dgv mỗi lần event Tick của fileScreen được gọi
+            fileScreen.timer1.Tick += FileScreen_Timer1_Tick;
             flowLayoutPanel1.Controls.Add(fileScreen);
         }
+
+        private void FileScreen_Timer1_Tick(object sender, EventArgs e)
+        {
+            if (!(sender is Timer timer))
+                return;
+            FileScreen fileScreen = timer.Tag as FileScreen;
+            DataGridViewRow row = getDgvRowByItemInfoId(fileScreen.itemInfo.Id);
+            if (row == null)
+                return;
+
+            try
+            {
+                if (CalculateNextTime(row.Cells["StartTime"].Value.ToString(), row.Cells["RunTime"].Value.ToString(), out DateTime nextTime))
+                {
+                    row.Cells["NextTime"].Value = nextTime.ToString(ItemInfo.DateTimeFormat);
+                }
+                else
+                {
+                    row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
+                }
+            }
+            catch (Exception ex)
+            {
+                row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
+            }
+        }
+
+
+        private void UpdateDgvRowAndFileScreenItemInfo(ref DataGridViewRow row, ref FileScreen fileScreen)
+        {
+            
+        }
+
         private void removeFileScreen(string id)
         {
-            var fileScreen = getFileScreenById(id);
+            var fileScreen = getFileScreenByItemInfoId(id);
             flowLayoutPanel1.Controls.Remove(fileScreen);
         }
-        private FileScreen getFileScreenById(string value)
+
+        private FileScreen getFileScreenByItemInfoId(string value)
         {
             foreach (var item in flowLayoutPanel1.Controls)
             {
@@ -416,7 +527,7 @@ namespace Cleaner
             return null;
         }
 
-        private ItemInfo castToItemInfo(DataGridViewRow row)
+        private ItemInfo dgvRowToItemInfo(DataGridViewRow row)
         {
             try
             {
@@ -438,6 +549,18 @@ namespace Cleaner
             }
         }
         
+        private DataGridViewRow getDgvRowByItemInfoId(string Id)
+        {
+            foreach (DataGridViewRow item in dgv.Rows)
+            {
+                if (item.Cells["Id"].Value.Equals(Id))
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
         private void dgvUpdateRow(ItemInfo itemInfo, int rowIndex = -1)
         {
             DataGridViewRow rowToUpdate = null;

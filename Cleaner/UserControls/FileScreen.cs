@@ -19,33 +19,56 @@ namespace Cleaner.UserControls
         public FileScreen()
         {
             InitializeComponent();
+            ControlConfig();
             EventConfig();
         }
 
         public FileScreen(ItemInfo itemInfo)
         {
             InitializeComponent();
+            ControlConfig();
             EventConfig();
             Set(itemInfo, false);
         }
 
         public void Set(ItemInfo itemInfo, bool isReloadControl = true)
         {
-            this.itemInfo = itemInfo;
-            if (Helper.TimeSpanTryParseCustom(itemInfo.RunTime, out TimeSpan runTime))
+            try
             {
-                timer1.Interval = (int)runTime.TotalMilliseconds;
+                this.itemInfo = itemInfo;
+                if (Helper.TimeSpanTryParseCustom(itemInfo.RunTime, out TimeSpan runTime))
+                {
+                    timer1.Interval = (int)runTime.TotalMilliseconds;
+                }
+                if (isReloadControl)
+                {
+                    FileScreen_Load(null, null);
+                }
             }
-            if (isReloadControl)
+            catch (Exception ex)
             {
-                FileScreen_Load(null, null);
+                throw ex;
             }
         }
-        
+
         public void ChangeTitleBackColor(Color color)
         {
             lblTitle.BackColor = color;
             BackColor = color;
+        }
+
+        public void UpdateTimeLeft()
+        {
+            if (Helper.DateTimeTryParseExact(itemInfo.NextTime, out DateTime nextTime))
+            {
+                TimeSpan timeLeft = DateTime.Now - nextTime;
+                lblTimeLeft.Text = "-" + timeLeft.ToString(@"dd\.hh\:mm\:ss");
+            }
+        }
+
+        private void ControlConfig()
+        {
+            timer1.Tag = this;  // để biết được fileScreen nào giữ timer đó
         }
 
         private void EventConfig()
@@ -94,11 +117,7 @@ namespace Cleaner.UserControls
                     var totalSizeMB = totalSizeByte / (1024 * 1024);
                     var totalFile = files.Count();
                     var totalDir = directories.Count();
-                    //var sb = new StringBuilder();
-                    //sb.AppendLine($" - Tổng số file: {totalFile}");
-                    //sb.AppendLine($" - Tổng số thư mục: {totalDir}");
-                    //sb.AppendLine($" - Tổng dung lượng: {totalSizeMB}");
-                    //rtxtRight.Text = sb.ToString();
+                    rtxtRight.AppendText(Environment.NewLine);
                     rtxtRight.AppendText($" - Files: {totalFile}", Color.DarkBlue);
                     rtxtRight.AppendText(Environment.NewLine);
                     rtxtRight.AppendText($" - Directories: {totalDir}", Color.DarkOrange);
