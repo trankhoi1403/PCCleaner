@@ -35,7 +35,7 @@
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButtonPin = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButtonLoad = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonReLoad = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonSaveAs = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -57,78 +57,74 @@
             // 
             // toolStrip1
             // 
-            this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.toolStrip1.BackColor = System.Drawing.Color.OldLace;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButtonPin,
-            this.toolStripButtonLoad,
+            this.toolStripButtonReLoad,
             this.toolStripButtonSave,
             this.toolStripButtonSaveAs,
             this.toolStripSeparator1,
             this.toolStripButtonAdd});
+            this.toolStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(24, 636);
+            this.toolStrip1.Size = new System.Drawing.Size(1009, 25);
             this.toolStrip1.TabIndex = 6;
             this.toolStrip1.Text = "Right click to browse json file to load";
             // 
             // toolStripButtonPin
             // 
-            this.toolStripButtonPin.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.toolStripButtonPin.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonPin.Image")));
             this.toolStripButtonPin.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonPin.Name = "toolStripButtonPin";
-            this.toolStripButtonPin.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButtonPin.Size = new System.Drawing.Size(44, 22);
             this.toolStripButtonPin.Text = "Pin";
             // 
-            // toolStripButtonLoad
+            // toolStripButtonReLoad
             // 
-            this.toolStripButtonLoad.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButtonLoad.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonLoad.Image")));
-            this.toolStripButtonLoad.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButtonLoad.Name = "toolStripButtonLoad";
-            this.toolStripButtonLoad.Size = new System.Drawing.Size(29, 20);
-            this.toolStripButtonLoad.Text = "Reload";
-            this.toolStripButtonLoad.ToolTipText = "Reload";
+            this.toolStripButtonReLoad.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonReLoad.Image")));
+            this.toolStripButtonReLoad.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.toolStripButtonReLoad.Name = "toolStripButtonReLoad";
+            this.toolStripButtonReLoad.Size = new System.Drawing.Size(63, 22);
+            this.toolStripButtonReLoad.Text = "Reload";
+            this.toolStripButtonReLoad.ToolTipText = "Reload";
             // 
             // toolStripButtonSave
             // 
-            this.toolStripButtonSave.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.toolStripButtonSave.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSave.Image")));
             this.toolStripButtonSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSave.Name = "toolStripButtonSave";
-            this.toolStripButtonSave.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonSave.Size = new System.Drawing.Size(51, 22);
             this.toolStripButtonSave.Text = "Save";
             this.toolStripButtonSave.ToolTipText = "Save to /db/item-info.json";
             // 
             // toolStripButtonSaveAs
             // 
-            this.toolStripButtonSaveAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.toolStripButtonSaveAs.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSaveAs.Image")));
             this.toolStripButtonSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSaveAs.Name = "toolStripButtonSaveAs";
-            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(65, 22);
             this.toolStripButtonSaveAs.Text = "Save as";
             this.toolStripButtonSaveAs.ToolTipText = "Save as";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(29, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
             // 
             // toolStripButtonAdd
             // 
-            this.toolStripButtonAdd.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.toolStripButtonAdd.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonAdd.Image")));
             this.toolStripButtonAdd.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonAdd.Name = "toolStripButtonAdd";
-            this.toolStripButtonAdd.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonAdd.Size = new System.Drawing.Size(74, 22);
             this.toolStripButtonAdd.Text = "New row";
             // 
             // splitContainer1
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            this.splitContainer1.Location = new System.Drawing.Point(24, 0);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 25);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -138,8 +134,9 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.flowLayoutPanel1);
-            this.splitContainer1.Size = new System.Drawing.Size(930, 636);
-            this.splitContainer1.SplitterDistance = 579;
+            this.splitContainer1.Size = new System.Drawing.Size(1009, 611);
+            this.splitContainer1.SplitterDistance = 668;
+            this.splitContainer1.SplitterWidth = 10;
             this.splitContainer1.TabIndex = 7;
             // 
             // dgv
@@ -150,7 +147,7 @@
             this.dgv.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgv.Location = new System.Drawing.Point(0, 0);
             this.dgv.Name = "dgv";
-            this.dgv.Size = new System.Drawing.Size(579, 636);
+            this.dgv.Size = new System.Drawing.Size(668, 611);
             this.dgv.TabIndex = 5;
             // 
             // flowLayoutPanel1
@@ -160,14 +157,14 @@
             this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(347, 636);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(331, 611);
             this.flowLayoutPanel1.TabIndex = 7;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(954, 636);
+            this.ClientSize = new System.Drawing.Size(1009, 636);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -193,7 +190,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripButtonPin;
-        private System.Windows.Forms.ToolStripButton toolStripButtonLoad;
+        private System.Windows.Forms.ToolStripButton toolStripButtonReLoad;
         private System.Windows.Forms.ToolStripButton toolStripButtonSave;
         private System.Windows.Forms.ToolStripButton toolStripButtonSaveAs;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;

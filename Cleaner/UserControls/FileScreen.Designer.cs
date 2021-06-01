@@ -90,7 +90,7 @@
             // 
             // lblTimeLeft
             // 
-            this.lblTimeLeft.BackColor = System.Drawing.Color.PeachPuff;
+            this.lblTimeLeft.BackColor = System.Drawing.Color.PaleGreen;
             this.lblTimeLeft.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.lblTimeLeft.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblTimeLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -129,6 +129,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Controls.Add(this.panel1);
+            this.Margin = new System.Windows.Forms.Padding(0);
             this.Name = "FileScreen";
             this.Size = new System.Drawing.Size(308, 198);
             this.panel1.ResumeLayout(false);

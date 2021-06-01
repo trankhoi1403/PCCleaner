@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Cleaner.ExtensionMethod;
 using DAL;
 using System.IO;
+using System.Threading;
 
 namespace Cleaner.UserControls
 {
@@ -28,10 +29,10 @@ namespace Cleaner.UserControls
             InitializeComponent();
             ControlConfig();
             EventConfig();
-            Set(itemInfo, false);
+            Set(itemInfo);
         }
 
-        public void Set(ItemInfo itemInfo, bool isReloadControl = true)
+        public void Set(ItemInfo itemInfo)
         {
             try
             {
@@ -39,10 +40,6 @@ namespace Cleaner.UserControls
                 if (Helper.TimeSpanTryParseCustom(itemInfo.RunTime, out TimeSpan runTime))
                 {
                     timer1.Interval = (int)runTime.TotalMilliseconds;
-                }
-                if (isReloadControl)
-                {
-                    FileScreen_Load(null, null);
                 }
             }
             catch (Exception ex)
@@ -61,8 +58,18 @@ namespace Cleaner.UserControls
         {
             if (Helper.DateTimeTryParseExact(itemInfo.NextTime, out DateTime nextTime))
             {
-                TimeSpan timeLeft = DateTime.Now - nextTime;
-                lblTimeLeft.Text = "-" + timeLeft.ToString(@"dd\.hh\:mm\:ss");
+                TimeSpan timeLeft = nextTime - DateTime.Now;
+                lblTimeLeft.Text = "- " + timeLeft.ToString(@"dd\.hh\:mm\:ss");
+                if (timeLeft < TimeSpan.FromMinutes(1))
+                {
+                    lblTimeLeft.BackColor = Color.PeachPuff;
+                    lblTimeLeft.ForeColor = Color.DarkRed;
+                }
+                else
+                {
+                    lblTimeLeft.BackColor = Color.PaleGreen;
+                    lblTimeLeft.ForeColor = Color.DarkGreen;
+                }
             }
         }
 
@@ -97,7 +104,7 @@ namespace Cleaner.UserControls
             }
         }
 
-        private void FileScreen_Load(object sender, EventArgs e)
+        public void FileScreen_Load(object sender, EventArgs e)
         {
             try
             {

@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanerService", "CleanerService\CleanerService.csproj", "{34FA477C-578B-4538-98D8-340673A1CC1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{5CFED054-533A-47AD-9B59-BD7EE96151F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CFED054-533A-47AD-9B59-BD7EE96151F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CFED054-533A-47AD-9B59-BD7EE96151F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34FA477C-578B-4538-98D8-340673A1CC1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34FA477C-578B-4538-98D8-340673A1CC1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34FA477C-578B-4538-98D8-340673A1CC1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34FA477C-578B-4538-98D8-340673A1CC1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

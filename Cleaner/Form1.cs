@@ -27,23 +27,25 @@ namespace Cleaner
         private void ControlConfig()
         {
 
-
             // folderBrowserDialog
             folderBrowserDialog1.Description = "Select your project directory to monitor";
             folderBrowserDialog1.ShowNewFolderButton = false;
 
             // config timer 
             timer1.Interval = 1000;    // cách 1 phút quét 1 lần
-            
+
+            flowLayoutPanel1.Cursor = Cursors.Hand;
+            flowLayoutPanel1.VerticalScroll.Value = flowLayoutPanel1.VerticalScroll.Minimum;
+
             //config cột
             dgv.AllowUserToAddRows = false;
             dgv.AutoGenerateColumns = false;
-            dgv.Columns.Add(new DataGridViewTextBoxColumn()
+            dgv.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Id",
                 DataPropertyName = "Id",
                 HeaderText = "Id (minute)",
-                Visible = false
+                Visible = false,
             });
             dgv.Columns.Add(new DataGridViewTextBoxColumn()
             {
@@ -58,7 +60,8 @@ namespace Cleaner
                 DataPropertyName = "Directory",
                 HeaderText = "Directory",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                ToolTipText = "Right click to browse folder"
+                ToolTipText = "Right click to browse folder",
+                Resizable = DataGridViewTriState.True
             });
             dgv.Columns.Add(new DataGridViewTextBoxColumn()
             {
@@ -73,6 +76,10 @@ namespace Cleaner
                 DataPropertyName = "RunTime",
                 HeaderText = "RunTime",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells,
+                DefaultCellStyle = new DataGridViewCellStyle()
+                {
+                    Alignment = DataGridViewContentAlignment.MiddleCenter
+                }
             });
             dgv.Columns.Add(new DataGridViewTextBoxColumn()
             {
@@ -97,7 +104,6 @@ namespace Cleaner
                 HeaderText = "Delete",
                 AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells,
             });
-
         }
 
         private void EventConfig()
@@ -113,7 +119,7 @@ namespace Cleaner
             dgv.CellMouseClick += Dgv_CellMouseClick;
 
             toolStripButtonAdd.Click += ToolStripLabelAdd_Click;
-            toolStripButtonLoad.Click += ToolStripButtonLoad_Click;
+            toolStripButtonReLoad.Click += ToolStripButtonReLoad_Click;
             toolStripButtonSave.Click += ToolStripButtonSave_Click;
             toolStripButtonSaveAs.Click += ToolStripButtonSaveAs_Click;
             toolStripButtonPin.Click += ToolStripButtonPin_Click;
@@ -186,6 +192,8 @@ namespace Cleaner
 
         private void Timer1_Tick(object sender, EventArgs e)
         {
+            if (dgv.Rows.Count == 0)
+                return;
             string now = DateTime.Now.ToString(ItemInfo.DateTimeFormat);
             int nowSecond = DateTime.Now.Second;
             int duration = 60 / dgv.Rows.Count; // vd: 60 / (10 + 1) = 5  khoảng thời gian giữa 1 lần load
@@ -238,6 +246,11 @@ namespace Cleaner
             }
         }
 
+        //private async void Dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        //{
+        //    await Dgv_CellValueChangedAsync(sender, e);
+        //}
+        //private async Task Dgv_CellValueChangedAsync(object sender, DataGridViewCellEventArgs e)
         private void Dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             try
@@ -320,9 +333,23 @@ namespace Cleaner
             }
         }
 
-        private void ToolStripButtonLoad_Click(object sender, EventArgs e)
+        private void ToolStripButtonReLoad_Click(object sender, EventArgs e)
         {
-            Form1_Load(null, null);
+            toolStripButtonReLoad.Enabled = false;
+            try
+            {
+                Form1_Load(null, null);
+                // working
+            }
+            catch
+            {
+                // oops
+            }
+
+            finally
+            {
+                toolStripButtonReLoad.Enabled = true;
+            }
         }
 
         private void Dgv_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -368,6 +395,14 @@ namespace Cleaner
                 {
                     fileScreen.ChangeTitleBackColor(Color.LightSkyBlue);
                 }
+
+                // scroll tới vị trí của filesScreen đang active
+                if (flowLayoutPanel1.VerticalScroll.Visible)
+                {
+                    flowLayoutPanel1.VerticalScroll.Value += fileScreen.Top;
+                    flowLayoutPanel1.PerformLayout();
+                }
+
             }
             catch (Exception ex)
             {
@@ -471,10 +506,12 @@ namespace Cleaner
         private void addFileScreen(ItemInfo itemInfo)
         {
             FileScreen fileScreen = new FileScreen();
-            fileScreen = new FileScreen(itemInfo);
+            fileScreen = new FileScreen();
+            fileScreen.Set(itemInfo);
             // thực hiện công việc update lại cột NextTime của dgv mỗi lần event Tick của fileScreen được gọi
             fileScreen.timer1.Tick += FileScreen_Timer1_Tick;
             flowLayoutPanel1.Controls.Add(fileScreen);
+            fileScreen.FileScreen_Load(null, null);
         }
 
         private void FileScreen_Timer1_Tick(object sender, EventArgs e)
