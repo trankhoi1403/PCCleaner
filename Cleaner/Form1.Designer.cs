@@ -86,7 +86,7 @@
             this.toolStripButtonLoad.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonLoad.Image")));
             this.toolStripButtonLoad.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonLoad.Name = "toolStripButtonLoad";
-            this.toolStripButtonLoad.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonLoad.Size = new System.Drawing.Size(21, 20);
             this.toolStripButtonLoad.Text = "Reload";
             this.toolStripButtonLoad.ToolTipText = "Reload";
             // 
@@ -96,7 +96,7 @@
             this.toolStripButtonSave.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSave.Image")));
             this.toolStripButtonSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSave.Name = "toolStripButtonSave";
-            this.toolStripButtonSave.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonSave.Size = new System.Drawing.Size(21, 20);
             this.toolStripButtonSave.Text = "Save";
             this.toolStripButtonSave.ToolTipText = "Save to /db/item-info.json";
             // 
@@ -106,14 +106,14 @@
             this.toolStripButtonSaveAs.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonSaveAs.Image")));
             this.toolStripButtonSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSaveAs.Name = "toolStripButtonSaveAs";
-            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonSaveAs.Size = new System.Drawing.Size(21, 20);
             this.toolStripButtonSaveAs.Text = "Save as";
             this.toolStripButtonSaveAs.ToolTipText = "Save as";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(29, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(21, 6);
             // 
             // toolStripButtonAdd
             // 
@@ -121,7 +121,7 @@
             this.toolStripButtonAdd.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButtonAdd.Image")));
             this.toolStripButtonAdd.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonAdd.Name = "toolStripButtonAdd";
-            this.toolStripButtonAdd.Size = new System.Drawing.Size(29, 20);
+            this.toolStripButtonAdd.Size = new System.Drawing.Size(21, 20);
             this.toolStripButtonAdd.Text = "New row";
             // 
             // splitContainer1
@@ -150,6 +150,7 @@
             this.dgv.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dgv.Location = new System.Drawing.Point(0, 0);
             this.dgv.Name = "dgv";
+            this.dgv.RowHeadersVisible = false;
             this.dgv.Size = new System.Drawing.Size(579, 636);
             this.dgv.TabIndex = 5;
             // 

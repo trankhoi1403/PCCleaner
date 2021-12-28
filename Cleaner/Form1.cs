@@ -57,7 +57,7 @@ namespace Cleaner
                 Name = "Directory",
                 DataPropertyName = "Directory",
                 HeaderText = "Directory",
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells,
                 ToolTipText = "Right click to browse folder"
             });
             dgv.Columns.Add(new DataGridViewTextBoxColumn()
@@ -118,7 +118,7 @@ namespace Cleaner
             toolStripButtonSaveAs.Click += ToolStripButtonSaveAs_Click;
             toolStripButtonPin.Click += ToolStripButtonPin_Click;
 
-            timer1.Tick += Timer1_Tick;
+            //timer1.Tick += Timer1_Tick;
             ResizeBegin += (s, e) =>
             {
                 System.Diagnostics.Debug.WriteLine($"w: {this.Width}, h: {this.Height}");
@@ -184,7 +184,7 @@ namespace Cleaner
             }
         }
 
-        private void Timer1_Tick(object sender, EventArgs e)
+        private void Timer1_Tick_Delete(object sender, EventArgs e)
         {
             string now = DateTime.Now.ToString(ItemInfo.DateTimeFormat);
             int nowSecond = DateTime.Now.Second;
@@ -216,7 +216,7 @@ namespace Cleaner
                              * sẽ ở lần Interval tiếp theo
                              */
                             fileScreen.Timer1_Tick(fileScreen.timer1, EventArgs.Empty);
-                            FileScreen_Timer1_Tick(fileScreen.timer1, EventArgs.Empty);
+                            //FileScreen_Timer1_Tick(fileScreen.timer1, EventArgs.Empty);
                         }
                     }
                     
@@ -279,13 +279,6 @@ namespace Cleaner
                     return;
 
                 fileScreen.Set(itemInfo);
-
-                // nếu người dùng cập nhật đúng cột status và status = Stoped thì mới dừng
-                if (e.ColumnIndex == row.Cells.IndexOf(row.Cells["Status"])
-                    && row.Cells["Status"].Value.Equals("Stoped"))
-                {
-                    fileScreen.timer1.Stop();
-                }
             }
             catch (Exception ex)
             {
@@ -472,17 +465,14 @@ namespace Cleaner
         {
             FileScreen fileScreen = new FileScreen();
             fileScreen = new FileScreen(itemInfo);
-            // thực hiện công việc update lại cột NextTime của dgv mỗi lần event Tick của fileScreen được gọi
-            fileScreen.timer1.Tick += FileScreen_Timer1_Tick;
+            fileScreen.ProjectClean += FileScreen_ProjectClean; ; // thực hiện công việc update lại cột NextTime của dgv mỗi lần event ProjectClean của fileScreen được gọi
             flowLayoutPanel1.Controls.Add(fileScreen);
+            //fileScreen.FileScreen_Load(null, null);
         }
 
-        private void FileScreen_Timer1_Tick(object sender, EventArgs e)
+        private void FileScreen_ProjectClean(FileScreen sender)
         {
-            if (!(sender is Timer timer))
-                return;
-            FileScreen fileScreen = timer.Tag as FileScreen;
-            DataGridViewRow row = getDgvRowByItemInfoId(fileScreen.itemInfo.Id);
+            DataGridViewRow row = getDgvRowByItemInfoId(sender.itemInfo.Id);
             if (row == null)
                 return;
 
@@ -502,13 +492,7 @@ namespace Cleaner
                 row.Cells["RunTime"].Value = ItemInfo.DefaultRunTime;
             }
         }
-
-
-        private void UpdateDgvRowAndFileScreenItemInfo(ref DataGridViewRow row, ref FileScreen fileScreen)
-        {
-            
-        }
-
+        
         private void removeFileScreen(string id)
         {
             var fileScreen = getFileScreenByItemInfoId(id);

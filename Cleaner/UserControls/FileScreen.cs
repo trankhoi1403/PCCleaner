@@ -15,6 +15,9 @@ namespace Cleaner.UserControls
 {
     public partial class FileScreen : UserControl
     {
+        public delegate void ProjectCleanHandler(FileScreen sender);
+        public event ProjectCleanHandler ProjectClean;
+
         public ItemInfo itemInfo { get; private set; }
         public FileScreen()
         {
@@ -27,28 +30,13 @@ namespace Cleaner.UserControls
         {
             InitializeComponent();
             ControlConfig();
+            Set(itemInfo);
             EventConfig();
-            Set(itemInfo, false);
         }
 
-        public void Set(ItemInfo itemInfo, bool isReloadControl = true)
+        public void Set(ItemInfo itemInfo)
         {
-            try
-            {
-                this.itemInfo = itemInfo;
-                if (Helper.TimeSpanTryParseCustom(itemInfo.RunTime, out TimeSpan runTime))
-                {
-                    timer1.Interval = (int)runTime.TotalMilliseconds;
-                }
-                if (isReloadControl)
-                {
-                    FileScreen_Load(null, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            this.itemInfo = itemInfo;
         }
 
         public void ChangeTitleBackColor(Color color)
@@ -61,14 +49,25 @@ namespace Cleaner.UserControls
         {
             if (Helper.DateTimeTryParseExact(itemInfo.NextTime, out DateTime nextTime))
             {
-                TimeSpan timeLeft = DateTime.Now - nextTime;
-                lblTimeLeft.Text = "-" + timeLeft.ToString(@"dd\.hh\:mm\:ss");
+                TimeSpan timeLeft = nextTime - DateTime.Now;
+                lblTimeLeft.Text = "- " + timeLeft.ToString(@"dd\.hh\:mm\:ss");
+                if (timeLeft < TimeSpan.FromMinutes(1))
+                {
+                    lblTimeLeft.BackColor = Color.PeachPuff;
+                    lblTimeLeft.ForeColor = Color.DarkRed;
+                }
+                else
+                {
+                    lblTimeLeft.BackColor = Color.PaleGreen;
+                    lblTimeLeft.ForeColor = Color.DarkGreen;
+                }
             }
         }
 
         private void ControlConfig()
         {
             timer1.Tag = this;  // để biết được fileScreen nào giữ timer đó
+            timer1.Interval = 1000; // quét sau 1s
         }
 
         private void EventConfig()
@@ -76,6 +75,8 @@ namespace Cleaner.UserControls
             Load += FileScreen_Load;
             btnDel.Click += BtnDel_Click;
             timer1.Tick += Timer1_Tick;
+
+            timer1.Start();
         }
 
         /// <summary>
@@ -89,7 +90,37 @@ namespace Cleaner.UserControls
             {
                 //deleteAllFileAndSubFolder();
                 //FileScreen_Load(null, null);
-                System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} FileScreen.Timer1_Tick: {itemInfo.Project}");
+                if (itemInfo.Status != "Running")
+                    return;
+
+                if (Helper.DateTimeTryParseExact(itemInfo.NextTime, out DateTime itemInfoNextTime) == false)
+                    return;
+
+                if (Helper.DateTimeTryParseExact(itemInfo.StartTime, out DateTime itemInfoStartTime) == false)
+                    return;
+
+                // canh thời điểm xóa
+                if (DateTime.Now.ToString(ItemInfo.DateTimeFormat).Equals(itemInfo.NextTime))   // đúng thời điểm NextTime thì sẽ start
+                {
+                    //tính toán lại thời điểm xóa file tiếp theo 
+                    if (CalculateNextTime(itemInfo.StartTime, itemInfo.RunTime, out DateTime newItemInfoNextTime) == false)
+                        return;
+                    itemInfo.NextTime = newItemInfoNextTime.ToString(ItemInfo.DateTimeFormat);
+                    System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} Da toi thoi diem xoa file: {itemInfo.Project}");
+
+                    ProjectClean?.Invoke(this);
+                }
+
+                // cập nhật thời gian còn lại đến lúc bị xóa
+                UpdateTimeLeft();
+
+
+                // canh thòi điểm load lại
+                if (itemInfoStartTime.Second.Equals(DateTime.Now.Second))
+                {
+                    System.Diagnostics.Debug.WriteLine($"{DateTime.Now.ToString("hh:mm:ss")} Reload FileScreen: {itemInfo.Project}");
+                }
+
             }
             catch (Exception ex)
             {
@@ -97,7 +128,7 @@ namespace Cleaner.UserControls
             }
         }
 
-        private void FileScreen_Load(object sender, EventArgs e)
+        public void FileScreen_Load(object sender, EventArgs e)
         {
             try
             {
@@ -168,6 +199,46 @@ namespace Cleaner.UserControls
                 {
                     dir.Delete(true);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Tính toán thời điểm nextTime sẽ xảy ra sự kiện xóa tiếp theo
+        /// </summary>
+        /// <param name="_startTime"></param>
+        /// <param name="_runTime"></param>
+        /// <param name="_nextTime"></param>
+        /// <returns></returns>
+        private bool CalculateNextTime(string _startTime, string _runTime, out DateTime _nextTime)
+        {
+            if (Helper.DateTimeTryParseExact(_startTime, out DateTime startTime) == false
+                       || Helper.TimeSpanTryParseCustom(_runTime, out TimeSpan runTime) == false)
+            {
+                throw new FormatException($@"The correct structure should be '\d+[d,h,m]'{Environment.NewLine}Example: 24d, 7h, 4233m,...");
+            }
+            if (runTime > ItemInfo.MaximumRunTime)
+            {
+                throw new ArgumentOutOfRangeException("_runTime", $"Maximum RunTime circle is '24d'. Let's try again!");
+            }
+
+            try
+            {
+                if (startTime > DateTime.Now)
+                {
+                    _nextTime = startTime;
+                }
+                else
+                {
+                    var duration = (DateTime.Now - startTime).TotalMinutes; // khoảng thời gian chênh lệch
+                    var total = (int)(duration / runTime.TotalMinutes); // số lần chênh lệch so với runTime
+                    _nextTime = startTime + TimeSpan.FromMinutes((total + 1) * runTime.TotalMinutes);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _nextTime = DateTime.MinValue;
+                return false;
             }
         }
         #endregion
